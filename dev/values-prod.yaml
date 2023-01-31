@@ -1,0 +1,49 @@
+replicaCount: 4
+
+env: prod
+
+
+image:
+  repository: bopgeek/flask-web:v1
+  pullPolicy: IfNotPresent
+
+
+container:
+  name: prod
+  containerPort: 5000
+
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+  name: prod
+
+
+hpa:
+  enabled: true
+  minReplicas: 4
+  maxReplicas: 10
+  averageUtilization: 50
+
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 500m
+    memory: 128Mi
+
+config:
+  name: config.yaml
+  data: 
+    timeout: 2s
+    logfile: /app/var/log.txt
+    database:
+      ip: 120.21.31.10
+      name: ui-prod 
+
+
+configxml:
+  name: app.xml

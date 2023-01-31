@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prod-deployment
+  labels:
+    app: prod
+    env: prod
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: prod
+  template:
+    metadata:
+      labels:
+        app: prod
+        env: prod
+    spec:
+      containers:
+      - name: prod
+        image: bopgeek/flask-web:v1
+        resources:
+          limits:
+            memory: 2Gi
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prod-svc
+  labels:
+    app: prod
+    env: prod
+spec:
+  selector:
+    app: prod
+  ports:
+  - port: 7002
+    targetPort: 5000
+    name: "http-prod"
+  type: LoadBalancer
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prod-HPA
+  labels:
+    app: prod
+    env: prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: prod
+  minReplicas: 4
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50

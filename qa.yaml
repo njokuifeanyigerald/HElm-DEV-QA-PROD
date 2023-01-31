@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qa-deployment
+  labels:
+    app: qa
+    env: qa
+spec:
+  selector:
+    matchLabels:
+      app: qa
+  template:
+    metadata:
+      labels:
+        app: qa
+        env: qa
+    spec:
+      containers:
+      - name: qa
+        image: bopgeek/flask-web:v1
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: "500m"
+          requests:
+            memory: 1Gi
+            cpu: "500m"
+        ports:
+        - containerPort: 5000
+
+---
+99
+apiVersion: v1
+kind: Service
+metadata:
+  name: qa-svc
+  labels:
+    app: qa
+    env: qa
+spec:
+  selector:
+    app: qa
+  ports:
+  - port: 7001
+    targetPort: 5000
+    name: http-qa
+  type: LoadBalancer
+

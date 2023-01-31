@@ -1,0 +1,135 @@
+---
+# Source: dev/templates/configmap-xml.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name
+  labels:
+    helm.sh/chart: dev-0.1.0
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  app.xml: |
+  
+  
+    <receivers>
+      <topic>
+        <options type="receiver">
+          <option name="ordered_delivery" order="deny,allow">
+            <deny>1</deny>
+          </option>
+        </options>
+      </topic>
+    </receivers>
+---
+# Source: dev/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name
+  labels:
+    helm.sh/chart: dev-0.1.0
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+data:
+  config.yaml: |
+    database:
+      ip: 120.21.31.10
+      name: ui-prod
+    logfile: /app/var/log.txt
+    timeout: 2s
+---
+# Source: dev/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name
+  labels:
+    helm.sh/chart: dev-0.1.0
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+    env: prod
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: prod
+  selector:
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+---
+# Source: dev/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name
+  labels:
+    helm.sh/chart: dev-0.1.0
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+    env: prod
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: dev
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: dev
+        app.kubernetes.io/instance: release-name
+        env: prod
+    spec:
+      containers:
+      - name: dev
+        image: "bopgeek/flask-web:v1"
+        pullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 500m
+            memory: 128Mi
+        ports:
+        - containerPort: 5000
+          name: prod
+---
+# Source: dev/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prod-HPA
+  labels:
+    helm.sh/chart: dev-0.1.0
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+    env: prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    app.kubernetes.io/name: dev
+    app.kubernetes.io/instance: release-name
+  minReplicas: 4
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50

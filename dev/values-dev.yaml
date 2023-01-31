@@ -1,0 +1,40 @@
+replicaCount: 1
+env: dev
+
+image:
+  repository: bopgeek/flask-web:v1
+  pullPolicy: IfNotPresent
+
+container:
+  name: dev
+  containerPort: 5000
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+  name: dev
+
+hpa:
+  enabled: false
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 500m
+    memory: 128Mi
+
+config:
+  name: config.yaml
+  data: 
+    timeout: 10s
+    logfile: /app/var/log.txt
+    database:
+      ip: 10.20.30.20
+      name: ui-dev 
+
+
+configxml:
+  name: app.xml

@@ -1,0 +1,39 @@
+replicaCount: 2
+env: qa
+
+image:
+  repository: bopgeek/flask-web:v1
+  pullPolicy: IfNotPresent
+
+container:
+  name: qa
+  containerPort: 5000
+
+service:
+  type: LoadBalancer
+  port: 81
+  targetPort: 5000
+  name: qa
+
+hpa:
+  enabled: false
+
+resources: 
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 500m
+    memory: 128Mi
+
+config:
+  name: config.yaml
+  data: 
+    timeout: 5s
+    logfile: /app/var/log.txt
+    database:
+      ip: 120.21.31.10
+      name: ui-qa 
+
+configxml:
+  name: app.xml
